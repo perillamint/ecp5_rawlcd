@@ -43,3 +43,7 @@ flycheck_*.el
 *.svf
 *.vvp
 *.vcd
+
+*.rom
+*.hex
+xbm2bin

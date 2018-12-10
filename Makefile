@@ -33,11 +33,11 @@ simulate: $(VCDS)
 prog: ${PROJ}.svf
 	openocd -f ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
 
-xpm2bin: xpm2bin.c image.xbm
+xbm2bin: xbm2bin.c image.xbm
 	cat $(filter %.xbm,$^) | gcc -o $@ $(filter %.c,$^)
 
-fb.rom: xpm2bin
-	./xpm2bin
+fb.rom: xbm2bin
+	./xbm2bin
 
 fb.hex: fb.rom
 	objcopy -I binary -O verilog fb.rom fb.hex
@@ -60,6 +60,6 @@ ${PROJ}.svf : ${PROJ}.bit
 	$(SIMULATOR) $(SIMFLAGS) $<
 
 clean:
-	rm -f *.svf *.bit *.config *.json *.vvp *.vcd *.rom *.hex xpm2bin
+	rm -f *.svf *.bit *.config *.json *.vvp *.vcd *.rom *.hex xbm2bin
 
 #.PHONY: prog clean
