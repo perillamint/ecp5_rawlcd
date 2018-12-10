@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv) {
     FILE *fp = fopen("fb.rom", "w");
-    for(int i = 0; i < 320 * (200 / 8); i++) {
+    for(int i = 0; i < _width * (_height / 8); i++) {
         fputc(_bits[i], fp);
     }
     fclose(fp);
