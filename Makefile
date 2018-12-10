@@ -33,8 +33,17 @@ simulate: $(VCDS)
 prog: ${PROJ}.svf
 	openocd -f ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
 
-$(JSONS): %.json: $(MODSRCS)
-	yosys -p "synth_ecp5 ${SYNTHFLAGS} -top ${TOPMODULE} -json $@" $^
+xpm2bin: xpm2bin.c image.xbm
+	cat $(filter %.xbm,$^) | gcc -o $@ $(filter %.c,$^)
+
+fb.rom: xpm2bin
+	./xpm2bin
+
+fb.hex: fb.rom
+	objcopy -I binary -O verilog fb.rom fb.hex
+
+$(JSONS): %.json: $(MODSRCS) fb.hex
+	yosys -p "synth_ecp5 ${SYNTHFLAGS} -top ${TOPMODULE} -json $@" $(filter-out %.hex,$^)
 
 %_out.config: %.json
 	nextpnr-ecp5 --json $< --basecfg ${PRJTRELLIS_MISC}/basecfgs/empty_lfe5${DEVICE}f.config --textcfg $@ --${DEVICE}k --package ${PACKAGE} --lpf ${PIN_DEF}
@@ -47,10 +56,10 @@ ${PROJ}.svf : ${PROJ}.bit
 %.vvp: %.v $(MODSRCS)
 	$(SIMCOMPILER) $(SIMCOMPFLAGS) $^ -o $@
 
-%_wave.vcd: %_tb.vvp
-	$(SIMULATOR) $(SIMFLAGS) $< saber.hex
+%_wave.vcd: %_tb.vvp fb.hex
+	$(SIMULATOR) $(SIMFLAGS) $<
 
 clean:
-	rm -f *.svf *.bit *.config *.json *.vvp *.vcd
+	rm -f *.svf *.bit *.config *.json *.vvp *.vcd *.rom *.hex xpm2bin
 
 #.PHONY: prog clean

@@ -4,7 +4,7 @@ module framebuffer(input clk,
    reg [7:0]                    data;
 
    reg [7:0]                    ram [0:7999];
-   initial $readmemh("saber.hex", ram);
+   initial $readmemh("fb.hex", ram);
 
    always @ (posedge clk)
      begin
