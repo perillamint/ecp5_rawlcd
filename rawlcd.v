@@ -5,9 +5,7 @@ module lcd(input        clk, // 4MHz clk
            output       lp,
            output       dclk,
            output       m);
-
-   integer              res_x = 320;
-   integer              res_y = 200;
+`include "lcd_params.vh"
 
    reg [3:0]            data;
    reg                  flm;
