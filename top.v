@@ -29,13 +29,25 @@ module top(
           end
      end // always @ (negedge clk, negedge rst_n)
 
-   wire fb_clk;
+   wire [7:0]  rxbuf;
+   wire        dr;
+
+   wire        fb_clk;
    wire [31:0] fb_addr;
-   wire [7:0] fb_data;
+   wire [7:0]  fb_data;
+
+   reg         fb_wclk;
+   reg [31:0]  fb_waddr;
+   reg [7:0]   fb_wdata;
+   reg         fb_switch;
 
    framebuffer fb (.rst_n(rst_n),
                    .rclk(fb_clk),
+                   .wclk(fb_wclk),
                    .rad(fb_addr),
+                   .wad(fb_waddr),
+                   .switch(fb_switch),
+                   .din(fb_wdata),
                    .dout(fb_data));
 
    lcd lcd1 (.clk(clk_lcd),
@@ -54,5 +66,34 @@ module top(
                    .sclk(sclk),
                    .mosi(mosi),
                    .miso(miso),
-                   .rxbuf(led));
+                   .dr(dr),
+                   .rxbuf(rxbuf));
+
+   reg         flag;
+
+   always @ (negedge clk)
+     begin
+        if (dr && !flag)
+          begin
+             fb_wdata <= rxbuf;
+             fb_wclk <= 0;
+             flag <= 1;
+          end
+        else
+          begin
+             if (flag)
+               begin
+                  fb_waddr <= fb_waddr + 1;
+                  fb_wclk <= 1;
+                  flag <= 0;
+                  fb_switch <= 0;
+               end
+
+             if (fb_waddr == 8000)
+               begin
+                  fb_switch <= 1;
+                  fb_waddr <= 0;
+               end
+          end
+     end
 endmodule
