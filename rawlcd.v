@@ -1,5 +1,8 @@
 module lcd(input        clk, // 4MHz clk
            input        rst_n,
+           output       fb_clk,
+           input [7:0]  fb_data,
+           input [31:0] fb_addr,
            output [3:0] data,
            output       flm,
            output       lp,
@@ -31,12 +34,8 @@ module lcd(input        clk, // 4MHz clk
         end
    endgenerate
 
-   framebuffer fbram (.clk(clk),
-                      .addr(fb_addr),
-                      .data(fb_data));
-
+   assign fb_clk = clk;
    assign fb_addr = row * (res_x / 8) + coloff[15:1];
-
 
    always @ (negedge clk, negedge rst_n)
      begin

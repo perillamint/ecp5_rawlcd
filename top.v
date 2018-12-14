@@ -6,7 +6,10 @@ module top(
            output       lcd_cl1,
            output       lcd_cl2,
            output       lcd_m,
-           output [3:0] lcd_data
+           output [3:0] lcd_data,
+           input        sclk,
+           input        mosi,
+           output       miso
            );
 
    reg [15:0]    clkdiv;
@@ -26,13 +29,30 @@ module top(
           end
      end // always @ (negedge clk, negedge rst_n)
 
+   wire fb_clk;
+   wire [31:0] fb_addr;
+   wire [7:0] fb_data;
+
+   framebuffer fb (.rst_n(rst_n),
+                   .rclk(fb_clk),
+                   .rad(fb_addr),
+                   .dout(fb_data));
+
    lcd lcd1 (.clk(clk_lcd),
              .rst_n(rst_n),
+             .fb_clk(fb_clk),
+             .fb_data(fb_data),
+             .fb_addr(fb_addr),
              .data(lcd_data),
              .flm(lcd_flm),
              .lp(lcd_cl1),
              .dclk(lcd_cl2),
              .m(lcd_m));
 
-   assign led = ~{lcd_data, lcd_flm, lcd_cl1, lcd_cl2, lcd_m};
+   //assign led = ~{lcd_data, lcd_flm, lcd_cl1, lcd_cl2, lcd_m};
+   spi_slave spi1 (.rst_n(rst_n),
+                   .sclk(sclk),
+                   .mosi(mosi),
+                   .miso(miso),
+                   .rxbuf(led));
 endmodule
