@@ -36,7 +36,7 @@ module top(
    wire [31:0] fb_addr;
    wire [7:0]  fb_data;
 
-   reg         fb_wclk;
+   wire        fb_wclk;
    reg [31:0]  fb_waddr;
    reg [7:0]   fb_wdata;
    reg         fb_switch;
@@ -71,29 +71,30 @@ module top(
 
    reg         flag;
 
-   always @ (negedge clk)
+   reg [31:0]  clkdivcnt;
+
+   always @ (posedge dr, negedge rst_n)
      begin
-        if (dr && !flag)
+        if (!rst_n)
           begin
-             fb_wdata <= rxbuf;
-             fb_wclk <= 0;
-             flag <= 1;
+             fb_waddr <= 0;
+             fb_wdata <= 0;
           end
         else
           begin
-             if (flag)
+             if (fb_waddr < 8000)
                begin
                   fb_waddr <= fb_waddr + 1;
-                  fb_wclk <= 1;
-                  flag <= 0;
                   fb_switch <= 0;
                end
-
-             if (fb_waddr == 8000)
+             else
                begin
                   fb_switch <= 1;
                   fb_waddr <= 0;
                end
-          end
+             fb_wdata <= rxbuf;
+          end // else: !if(!rst_n)
      end
+
+   assign fb_wclk = !dr;
 endmodule
