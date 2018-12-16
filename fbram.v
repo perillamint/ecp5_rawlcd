@@ -12,7 +12,7 @@ module fbram(
    reg [7:0]              dout;
    reg [7:0]              ram [0:fbsize - 1];
 
-   initial $readmemh("fb.hex", ram);
+   initial $readmemh("image.hex", ram);
 
    always @ (posedge clk)
      begin

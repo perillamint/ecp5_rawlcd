@@ -10,22 +10,23 @@ module framebuffer(input        rst_n,
    reg                          fbsel;
    wire                         clk1;
    wire                         clk2;
-   wire [31:0]                  dout1;
-   wire [31:0]                  dout2;
+   wire [7:0]                   dout1;
+   wire [7:0]                   dout2;
 
    fbram fbram1(.clk(clk1),
-                .wre(fbsel),
+                .wre(!fbsel),
                 .rad(rad),
                 .wad(wad),
                 .dout(dout1),
                 .din(din));
 
    fbram fbram2(.clk(clk2),
-                .wre(!fbsel),
+                .wre(fbsel),
                 .rad(rad),
                 .wad(wad),
                 .dout(dout2),
                 .din(din));
+
 
    assign dout = fbsel ? dout1 : dout2;
    assign clk1 = fbsel ? rclk : wclk;
