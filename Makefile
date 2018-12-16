@@ -33,16 +33,11 @@ simulate: $(VCDS)
 prog: ${PROJ}.svf
 	openocd -f ecp5-evn.cfg -c "transport select jtag; init; svf $<; exit"
 
-xbm2bin: xbm2bin.c image.xbm
-	cat $(filter %.xbm,$^) | gcc -o $@ $(filter %.c,$^)
+%.hex: %.xbm
+	echo @00000000 > $@
+	cat $< | tail -n +4 | sed 's/0x//g' | sed 's/[}; ]//g' | sed 's/,/ /g' >> $@
 
-fb.rom: xbm2bin
-	./xbm2bin
-
-fb.hex: fb.rom
-	objcopy -I binary -O verilog fb.rom fb.hex
-
-$(JSONS): %.json: $(MODSRCS) fb.hex
+$(JSONS): %.json: $(MODSRCS) image.hex image2.hex
 	yosys -p "synth_ecp5 ${SYNTHFLAGS} -top ${TOPMODULE} -json $@" $(filter-out %.hex,$^)
 
 %_out.config: %.json
