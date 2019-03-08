@@ -41,7 +41,7 @@ $(JSONS): %.json: $(MODSRCS) image.hex image2.hex
 	yosys -p "synth_ecp5 ${SYNTHFLAGS} -top ${TOPMODULE} -json $@" $(filter-out %.hex,$^)
 
 %_out.config: %.json
-	nextpnr-ecp5 --json $< --basecfg ${PRJTRELLIS_MISC}/basecfgs/empty_lfe5${DEVICE}f.config --textcfg $@ --${DEVICE}k --package ${PACKAGE} --lpf ${PIN_DEF}
+	nextpnr-ecp5 --json $< --textcfg $@ --${DEVICE}k --package ${PACKAGE} --lpf ${PIN_DEF}
 
 %.bit: %_out.config
 	ecppack --svf ${PROJ}.svf $< $@
