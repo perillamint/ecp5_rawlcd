@@ -1,5 +1,6 @@
 module top(
            input        clk,
+           output       clk_en,
            input        rst_n,
            output [7:0] led,
            output       lcd_flm,
@@ -7,10 +8,15 @@ module top(
            output       lcd_cl2,
            output       lcd_m,
            output [3:0] lcd_data,
+           input        cs_n,
            input        sclk,
            input        mosi,
-           output       miso
+           output       miso,
+           input uart_rx,
+           output uart_tx
            );
+
+   assign clk_en = 1;
 
    reg [15:0]    clkdiv;
    reg           clk_1mhz;
@@ -18,7 +24,7 @@ module top(
 
    always @ (negedge clk)
      begin
-        if (clkdiv >= 16'd2)
+        if (clkdiv >= 8'd10)
           begin
              clkdiv <= 0;
              clk_lcd <= ~clk_lcd;
@@ -39,13 +45,13 @@ module top(
    wire        fb_wclk;
    reg [31:0]  fb_waddr;
    reg [7:0]   fb_wdata;
-   reg         fb_switch;
+   wire        fb_switch;
 
    framebuffer fb (.rst_n(rst_n),
                    .rclk(fb_clk),
                    .wclk(fb_wclk),
                    .rad(fb_addr),
-                   .wad(fb_waddr),
+                   .wad(fb_waddr - 1),
                    .switch(fb_switch),
                    .din(fb_wdata),
                    .dout(fb_data));
@@ -63,38 +69,37 @@ module top(
 
    //assign led = ~{lcd_data, lcd_flm, lcd_cl1, lcd_cl2, lcd_m};
    spi_slave spi1 (.rst_n(rst_n),
+                   .cs_n(cs_n),
                    .sclk(sclk),
                    .mosi(mosi),
                    .miso(miso),
                    .dr(dr),
                    .rxbuf(rxbuf));
 
+   //simpleuart uart1 (.resetn(rst_n),
+   //                  .clk(clk),
+   //                  .ser_tx(uart_tx),
+   //                  .ser_rx(uart_rx),
+   //                  .reg_)
+
    reg         flag;
 
    reg [31:0]  clkdivcnt;
 
-   always @ (posedge dr, negedge rst_n)
-     begin
-        if (!rst_n)
-          begin
-             fb_waddr <= 0;
-             fb_wdata <= 0;
-          end
-        else
-          begin
-             if (fb_waddr < 8000)
-               begin
-                  fb_waddr <= fb_waddr + 1;
-                  fb_switch <= 0;
-               end
-             else
-               begin
-                  fb_switch <= 1;
-                  fb_waddr <= 0;
-               end
-             fb_wdata <= rxbuf;
-          end // else: !if(!rst_n)
-     end
+   //always @ (posedge dr, posedge cs_n)
+   //  begin
+   //     if (cs_n)
+   //       begin
+   //          fb_waddr <= 0;
+   //          fb_wdata <= 0;
+   //       end
+   //     else
+   //       begin
+   //          fb_waddr <= fb_waddr + 1;
+   //          fb_wdata <= rxbuf;
+   //       end // else: !if(!rst_n)
+   //  end // always @ (posedge dr, negedge rst_n)
 
+   assign fb_switch = cs_n;
    assign fb_wclk = !dr;
 endmodule

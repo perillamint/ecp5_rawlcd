@@ -37,7 +37,7 @@ prog: ${PROJ}.svf
 	echo @00000000 > $@
 	cat $< | tail -n +4 | sed 's/0x//g' | sed 's/[}; ]//g' | sed 's/,/ /g' >> $@
 
-$(JSONS): %.json: $(MODSRCS) image.hex image2.hex
+$(JSONS): %.json: $(MODSRCS) image.hex image2.hex mogumo.hex
 	yosys -p "synth_ecp5 ${SYNTHFLAGS} -top ${TOPMODULE} -json $@" $(filter-out %.hex,$^)
 
 %_out.config: %.json

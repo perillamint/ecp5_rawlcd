@@ -1,5 +1,6 @@
 module spi_slave(
                  input        rst_n,
+                 input        cs_n,
                  input        sclk,
                  input        mosi,
                  output       miso,
@@ -16,11 +17,22 @@ module spi_slave(
    reg [7:0]                  txbuf;
    reg [2:0]                  count;
 
-   always @ (posedge sclk)
+   wire                       rst = rst_n && (!cs_n);
+
+   always @ (posedge sclk, negedge rst)
      begin
-        count <= count + 1;
-        dr <= count == 3'd7;
-        rxbuf <= {rxbuf[6:0], mosi};
+        if (!rst)
+          begin
+             count <= 0;
+             dr <= 0;
+             rxbuf <= 0;
+            end
+        else
+          begin
+             count <= count + 1;
+             dr <= count == 3'd7;
+             rxbuf <= {rxbuf[6:0], mosi};
+          end
         //miso <= txbuf[];
      end
 
